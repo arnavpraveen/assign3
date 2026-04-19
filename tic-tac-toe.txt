@@ -1,0 +1,124 @@
+export default function Square() {
+  return <button className="square">X</button>;
+}
+
+The code above gives one square.
+
+You cannot just copy and paste to add another square. You have to wrap the elements in <></>:
+
+export default function Square() {
+  return (
+    <>
+      <button className="square">X</button>
+      <button className="square">X</button>
+    </>
+  );
+}
+
+If you just use this pattern nine times, the squares will be rendered in a straight line. To make a grid, use a div.
+
+<div className="board-row">
+   <button className="square">1</button>
+   <button className="square">2</button>
+   <button className="square">3</button>
+</div>
+
+Changed the square function name to board because a square is a smaller unit.
+
+Create a square function and populate board with square objects.
+
+Add a value parameter to the square value and in the board function, populate the board with squares with values 1-9:
+
+function Square({ value }) {
+  return <button className="square">{value}</button>;
+}
+
+<Square value="1" />
+
+Add a function handleClick in Square that allows the square to do something when clicked.
+
+Use useState so that the square can "remember" what value it stores. Update board to match this change.
+
+import { useState } from 'react';
+
+function Square() {
+  const [value, setValue] = useState(null);
+...
+}
+
+Instead of logging clicked to the console, change the value of the square to X when clicked.
+
+const [squares, setSquares] = useState(Array(9).fill(null));
+
+This creates an array of 9 elements in Board that can record the current state of them game.
+Set the values of the squares to its corresponding array element.
+
+function Square({value}) {
+  return <button className="square">{value}</button>;
+}
+
+Change the square function so that it can display the value given to it by Board.
+
+<button className="square" onClick={onSquareClick}>
+   {value}  
+</button>
+Then change the square function to be a button so it can handle being clicked.
+
+<Square value={squares[0]} onSquareClick={handleClick} />
+
+Update Board so it can see when the squares are clicked.
+
+Add handleClick() to Board so that it can update the squares array when a square is clicked.
+
+<Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+
+Use this syntax to call handleClick for each square in the board.
+
+After all this, clicking a square in the Board changes it to an X, but all the state management is handled by Board.
+
+const [xIsNext, setXIsNext] = useState(true);
+
+Add a way to switch between adding X's and O's.
+
+if (squares[i]) {
+   return;
+}
+
+Add a check so the same square cannot be clicked multiple times.
+
+Add a calculate winner function to check the array and returns X, O, or null.
+
+if (squares[i] || calculateWinner(squares)) {
+   return;
+}
+
+Update the Board's handleClick to calculate the winner before proceeding.
+
+const winner = calculateWinner(squares);
+let status;
+if (winner) {
+   status = "Winner: " + winner;
+} else {
+   status = "Next player: " + (xIsNext ? "X" : "O");
+}
+
+Add a game status section to board.
+
+Add a game function to display a list of past moves.
+
+const [xIsNext, setXIsNext] = useState(true);
+const [history, setHistory] = useState([Array(9).fill(null)]);
+
+This tracks the next player and the history of moves in the Game function.
+
+Update Board to take parameters { xIsNext, squares, onPlay }
+Delete the next player logic from Board because it is handled by Game now.
+
+Add a jumpTo function and add a section showing past game states.
+
+setCurrentMove(nextMove);
+setXIsNext(nextMove % 2 === 0);
+
+Add this to jumpTo in order to go back to a previous move and updates the turn correctly.
+
+Update handlePlay to not keep moves after the current state.
