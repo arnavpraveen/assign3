@@ -1,0 +1,82 @@
+Assuming we have tic-tac-toe already implemented:
+
+Move phase needs to remember which piece the user clicked first:
+
+const [selectedSquare, setSelectedSquare] = useState(null);
+
+Add this to the very top of Board()
+
+function isAdjacent(a, b) {
+  if (a === b) return false;
+  const r1 = Math.floor(a / 3), c1 = a % 3;
+  const r2 = Math.floor(b / 3), c2 = b % 3;
+  return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1;
+}
+
+Add this function after calculateWinner to check if two indices are adjacent. Two indices are adjacent if their row and column indices differ by at most 1.
+
+Replace the body of handleClick with the following:
+
+if (calculateWinner(squares)) {
+return;
+}
+const currentPlayer = xIsNext ? 'X' : 'O';
+const currentCount = squares.filter(s => s === currentPlayer).length;
+if (currentCount < 3) {
+if (squares[i]) {
+    return;
+}
+const nextSquares = squares.slice();
+nextSquares[i] = currentPlayer;
+onPlay(nextSquares);
+}
+
+In the game, clicking on a non-empty square is needed, you need to have a check for if a player has placed 3 pieces.
+
+Add a return after the placement block in handleClick. Then, add the following after the current code in handleClick:
+
+if (selectedSquare === null) {
+    if (squares[i] === currentPlayer) {
+        setSelectedSquare(i);
+    }
+    return;
+}
+
+This code allows the player to select their own piece.
+
+Add the following in handleClick at the end:
+
+if (squares[i] === null && isAdjacent(selectedSquare, i)) {
+    const nextSquares = squares.slice();
+    nextSquares[selectedSquare] = null;
+    nextSquares[i] = currentPlayer;
+    setSelectedSquare(null);
+    onPlay(nextSquares);
+    return;
+}
+setSelectedSquare(null);
+
+This code checks to see if the next square the player selects is valid after selecting their own piece. If the second square selected is not valid, then reset the player's selection.
+
+Update the second click logic in handleClick:
+
+if (squares[i] === null && isAdjacent(selectedSquare, i)) {
+    let legal = true;
+    if (squares[4] === currentPlayer && selectedSquare !== 4) {
+        const test = squares.slice();
+        test[selectedSquare] = null;
+        test[i] = currentPlayer;
+        legal = calculateWinner(test) === currentPlayer;
+    }
+    if (legal) {
+        const nextSquares = squares.slice();
+        nextSquares[selectedSquare] = null;
+        nextSquares[i] = currentPlayer;
+        setSelectedSquare(null);
+        onPlay(nextSquares);
+        return;
+    }
+}
+
+This code adds a legality check for the move before actually executing the move. If the current player is occupying the center and is moving a non-center piece, the move is only legal if it wins.
+The actual onPlay call is wrapped in if (legal). If the move is illegal, we fall through to the revert call on the bottom.
