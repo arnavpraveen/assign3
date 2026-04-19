@@ -9,17 +9,47 @@ function Square({ value, onSquareClick }) {
 }
 
 function Board({ xIsNext, squares, onPlay }) {
+  const [selectedSquare, setSelectedSquare] = useState(null);
+
   function handleClick(i) {
-    if (calculateWinner(squares) || squares[i]) {
+    if (calculateWinner(squares)) {
       return;
     }
-    const nextSquares = squares.slice();
-    if (xIsNext) {
-      nextSquares[i] = 'X';
-    } else {
-      nextSquares[i] = 'O';
+    const currentPlayer = xIsNext ? 'X' : 'O';
+    const currentCount = squares.filter(s => s === currentPlayer).length;
+    if (currentCount < 3) {
+      if (squares[i]) {
+        return;
+      }
+      const nextSquares = squares.slice();
+      nextSquares[i] = currentPlayer;
+      onPlay(nextSquares);
+      return;
     }
-    onPlay(nextSquares);
+    if (selectedSquare === null) {
+      if (squares[i] === currentPlayer) {
+        setSelectedSquare(i);
+      }
+      return;
+    }
+    if (squares[i] === null && isAdjacent(selectedSquare, i)) {
+    let legal = true;
+    if (squares[4] === currentPlayer && selectedSquare !== 4) {
+      const test = squares.slice();
+      test[selectedSquare] = null;
+      test[i] = currentPlayer;
+      legal = calculateWinner(test) === currentPlayer;
+    }
+    if (legal) {
+      const nextSquares = squares.slice();
+      nextSquares[selectedSquare] = null;
+      nextSquares[i] = currentPlayer;
+      setSelectedSquare(null);
+      onPlay(nextSquares);
+      return;
+    }
+  }
+    setSelectedSquare(null);
   }
 
   const winner = calculateWinner(squares);
@@ -112,4 +142,11 @@ function calculateWinner(squares) {
     }
   }
   return null;
+}
+
+function isAdjacent(a, b) {
+  if (a === b) return false;
+  const r1 = Math.floor(a / 3), c1 = a % 3;
+  const r2 = Math.floor(b / 3), c2 = b % 3;
+  return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1;
 }
